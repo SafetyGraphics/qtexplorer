@@ -1,0 +1,17 @@
+env: safetyGraphics
+label: QT Delta-Delta
+type: htmlwidget
+package: qtexplorer
+export: true
+order: 7
+domain: 
+  ecg
+workflow:
+  widget: safetyDeltaDelta
+links:
+  Homepage: https://github.com/RhoInc/safety-delta-delta
+  Wiki: https://github.com/RhoInc/safety-delta-delta/wiki 
+  Issues: https://github.com/RhoInc/safety-delta-delta/issues
+  Demo: https://rhoinc.github.io/safety-delta-delta/test-page/
+  qtexplorer: https://github.com/SafetyGraphics/qtexplorer
+

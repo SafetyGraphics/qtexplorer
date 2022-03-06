@@ -1,0 +1,36 @@
+Package: qtexplorer
+Title: Charts for Monitoring QT/ECG Safety 
+Version: 0.0.0.9000
+Authors@R:
+    person("Jeremy", "Wildfire", email = "jwildfire@gmail.com", role = c("cre","aut")),	
+	person("Xiao","Ni", email = "mooncase@gmail.com", role = "aut")
+Maintainer: Xiao Ni <mooncase@gmail.com>
+Description: QT/ECG visualizations based on safetyGrahphics/safetyCharts framework, extended from safetyCharts pkg
+URL: https://github.com/SafetyGraphics/qtexplorer
+BugReports: https://github.com/SafetyGraphics/qtexplorer/issues
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE)
+Imports:
+    dplyr,
+    DT,
+    Tplyr,
+    ggplot2,
+    plotly,
+    rlang,
+    shiny,
+    knitr,
+    RColorBrewer,
+    stringr,
+    forcats
+Suggests:
+    testthat,
+    shinytest,
+    safetyData,
+    safetyGraphics,
+    safetyCharts
+    yaml
+Depends:
+    R (>= 4.0)

@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+R_old
+^data-raw$
+^\.github$
+Examples
+cran-comments.md
+^LICENSE\.md$
+^CRAN-RELEASE$
