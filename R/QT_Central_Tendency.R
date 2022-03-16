@@ -19,7 +19,7 @@
 #'
 #' @return returns a chart object
 #'
-#' @import plotly
+#' @importFrom plotly ggplotly
 #' @import rlang
 #' @importFrom rlang .data
 #' @import dplyr

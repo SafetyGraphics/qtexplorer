@@ -90,7 +90,7 @@ QT_Outlier_Explorer <- function(data, settings)
             hline(60),
             list(
                 type="line", 
-                width= 2,  
+                #width= 2,  
                 line = list(dash = 'dash',color = "red"),
                 x0=0, 
                 x1=450, 
