@@ -9,8 +9,8 @@
 \item{ID}{Subject identifier.}
 \item{VISIT}{Visit number.}
 \item{DAY}{Day number.}
-\item{TIME}{Time relative to dose, or “EARLY WITHDRAWAL”, or missing, as reported in the source data. See TIME2.}
-\item{TIME2}{2 if TIME == “2 HOURS POST DOSE”; 0 otherwise. }
+\item{TIME}{Time relative to dose, or "EARLY WITHDRAWAL", or missing, as reported in the source data. See TIME2.}
+\item{TIME2}{2 if TIME == "2 HOURS POST DOSE"; 0 otherwise. }
 \item{PARAM}{HR for heart rate, or QTCF for QTcF.}
 \item{VALIE}{Observed value of HR, in beats per minute, or QTcF, in milliseconds.}
 \item{BASE}{Baseline VALUE.}

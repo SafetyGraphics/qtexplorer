@@ -20,6 +20,6 @@ source data
 dm_ph2
 }
 \description{
-Phase 2b Study demographic data.
+Demogrpahic data
 }
 \keyword{datasets}

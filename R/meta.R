@@ -1,4 +1,27 @@
-#' Metadata data frame containing information about the data mapping used to configure safetyGraphics charts for the ecg domain. One record per unique data mapping
+#' Metadata data frame containing information about the data mapping used to configure safetyGraphics charts for the dm domain. One record per unique data mapping
+#'
+#' @format A data frame with X rows and 10 columns
+#' \describe{
+#'    \item{domain}{Data domain}
+#'    \item{text_key}{Text key indicating the setting name. \code{'--'} delimiter indicates a field level data mapping}
+#'    \item{col_key}{Key for the column mapping}
+#'    \item{field_key}{Key for the field mapping (if any)}
+#'    \item{type}{type of mapping - "field" or "column"}
+#'    \item{label}{Label}
+#'    \item{description}{Description}
+#'    \item{multiple}{Mapping supports multiple columns/fields }
+#'    \item{standard_adam}{Default values for the ADaM data standard}
+#'    \item{standard_sdtm}{Default values for the SDTM data standard}
+#' }    
+#' 
+#' @source Created for this package
+"meta_dm"
+
+#' ECG Meta Data
+#' 
+#' Metadata data frame containing information about the data mapping used to configure 
+#' safetyGraphics charts for the ecg domain. 
+#' One record per unique data mapping
 #'
 #' @format A data frame with 22 rows and 10 columns
 #' \describe{
@@ -15,26 +38,26 @@
 #' }
 #'
 #' @source Created for this package
-
 "meta_ecg"
 
 #' Phase I SAD-MAD Study ECG data.
 #'
-#'
+#' ECG data from Phase I SAD/MAD studies 
+#' 
 #' @format
 #' \describe{
 #'   \item{PART}{SAD or MAD.}
-#' ,  \item{ID}{Subject identifier.}
-#' ,  \item{DAY}{Day number as in the source data. See DAY2.}
-#' ,  \item{DAY2}{For the SAD part, DAY2 = 1 for the day of and the two days following the dose administration, whereas DAY = 1, 2, 3.}
-#' ,  \item{VISIT}{Visit number as in the source data. See VISIT2.}
-#' ,  \item{VISIT2}{For the SAD part, VISIT2 = 1 for the day of and the two days following the dose administration, whereas VISIT = 1, 2, 3.}
-#' ,  \item{TIME}{Time post dose, in hours, reported in the source data. See TIME2.}
-#' ,  \item{TIME2}{For the SAD part, TIME is missing for the screening and pre-treatment visits; TIME2 = 0 then. For the SAD part, TIME is missing for the observation on DAY 3; TIME2 = 48 hours then.}
-#' ,  \item{PARAM}{HR for heart rate, or QTCF for QTcF.}
-#' ,  \item{VALIE}{Observed value of HR, in beats per minute, or QTcF, in milliseconds.}
-#' ,  \item{BASE}{Baseline VALUE.}
-#' ,  \item{CHANGE}{Change from baseline for observations after the baseline; missing otherwise.}
+#'   \item{ID}{Subject identifier.}
+#'   \item{DAY}{Day number as in the source data. See DAY2.}
+#'   \item{DAY2}{For the SAD part, DAY2 = 1 for the day of and the two days following the dose administration, whereas DAY = 1, 2, 3.}
+#'   \item{VISIT}{Visit number as in the source data. See VISIT2.}
+#'   \item{VISIT2}{For the SAD part, VISIT2 = 1 for the day of and the two days following the dose administration, whereas VISIT = 1, 2, 3.}
+#'   \item{TIME}{Time post dose, in hours, reported in the source data. See TIME2.}
+#'   \item{TIME2}{For the SAD part, TIME is missing for the screening and pre-treatment visits; TIME2 = 0 then. For the SAD part, TIME is missing for the observation on DAY 3; TIME2 = 48 hours then.}
+#'   \item{PARAM}{HR for heart rate, or QTCF for QTcF.}
+#'   \item{VALIE}{Observed value of HR, in beats per minute, or QTcF, in milliseconds.}
+#'   \item{BASE}{Baseline VALUE.}
+#'   \item{CHANGE}{Change from baseline for observations after the baseline; missing otherwise.}
 #' }
 #' @source source data 
 "eg_ph1"
@@ -83,8 +106,8 @@
 #'   \item{ID}{Subject identifier.}
 #'   \item{VISIT}{Visit number.}
 #'   \item{DAY}{Day number.}
-#'   \item{TIME}{Time relative to dose, or “EARLY WITHDRAWAL”, or missing, as reported in the source data. See TIME2.}
-#'   \item{TIME2}{2 if TIME == “2 HOURS POST DOSE”; 0 otherwise. }
+#'   \item{TIME}{Time relative to dose, or "EARLY WITHDRAWAL", or missing, as reported in the source data. See TIME2.}
+#'   \item{TIME2}{2 if TIME == "2 HOURS POST DOSE"; 0 otherwise. }
 #'   \item{PARAM}{HR for heart rate, or QTCF for QTcF.}
 #'   \item{VALIE}{Observed value of HR, in beats per minute, or QTcF, in milliseconds.}
 #'   \item{BASE}{Baseline VALUE.}
@@ -97,7 +120,8 @@
 
 #' Phase 2b Study demographic data.
 #'
-#'
+#' Demogrpahic data
+#' 
 #' @format
 #' \describe{
 #'   \item{ID}{Subject identifier.}

@@ -7,6 +7,7 @@ export: true
 order: 1
 domain: 
   - ecg
+  - dm
 workflow:
   ui: QT_OutlierExplorer_ui
   server: QT_OutlierExplorer_server

@@ -13,23 +13,23 @@
 
 QT_Explorer_ui <- function(id) {
     ns <- NS(id)
-    sidebar<-sidebarPanel(
-        uiOutput(ns("selectMeasures"))
+    sidebar <- sidebarPanel(
+        uiOutput(ns("selectMeasures")),
+        uiOutput(ns("selectSubgroups"))
     )
-    main<-mainPanel(
+    main <- mainPanel(
         tabsetPanel(
             tabPanel("QT Vis", plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),
             tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
             tabPanel("QT Data Info", verbatimTextOutput(ns("info")))
         )
-        
     )
-    ui<-fluidPage(
+    ui <- fluidPage(
         sidebarLayout(
             sidebar,
             main,
             position = c("right"),
-            fluid=TRUE
+            fluid = TRUE
         )
     )
     return(ui)
@@ -52,48 +52,110 @@ QT_Explorer_ui <- function(id) {
 
 QT_Explorer_server <- function(input, output, session, params) {
     ns <- session$ns
-    
-    
+
+    rv <- reactiveValues() # filtered_data = params()$data$ecg )
+
+    observe({
+        rv$measure_col <- params()$settings$ecg$measure_col
+        rv$measures <- unique(params()$data$ecg[[rv$measure_col]])
+
+        rv$sex_col <- params()$settings$dm$sex_col
+        rv$age_col <- params()$settings$dm$age_col
+        rv$race_col <- params()$settings$dm$race_col
+
+        rv$sex_vals <- unique(params()$data$dm[[rv$sex_col]])
+        rv$race_vals <- unique(params()$data$dm[[rv$race_col]])
+        rv$age_min <- min(params()$data$dm[[rv$age_col]], na.rm = TRUE)
+        rv$age_max <- max(params()$data$dm[[rv$age_col]], na.rm = TRUE)
+    })
+
     output$selectMeasures <- renderUI({
-        measure_col <- params()$settings$measure_col
-        measures <- unique(params()$data[[measure_col]])
-        
-        
+        req(rv$measures)
         selectizeInput(
             ns("measures"),
             "Select Measures",
-            multiple=TRUE,
-            choices=measures,
+            multiple = FALSE,
+            choices = rv$measures,
             selected = "QTcF"
         )
     })
-    
+
+    # subgroup dropdowns
+    output$selectSubgroups <- renderUI({
+        tagList(
+            selectizeInput(
+                ns("sex"),
+                "Sex",
+                multiple = TRUE,
+                choices = rv$sex_vals,
+                selected = rv$sex_vals
+            ),
+            selectizeInput(
+                ns("race"),
+                "Race",
+                multiple = TRUE,
+                choices = rv$race_vals,
+                selected = rv$race_vals
+            ),
+            sliderInput(
+                ns("age"),
+                "Age",
+                min = rv$age_min,
+                max = rv$age_max,
+                step = 1,
+                value = c(rv$age_min, rv$age_max)
+            )
+        )
+    })
+
+
     # Populate control with measures and select all by default
-    
+
     # customize selected measures based on input
     settingsR <- reactive({
-        settings <- params()$settings
+        settings <- params()$settings$ecg
         settings$measure_values <- input$measures
         return(settings)
     })
-    
+
     # data info
 
     output$info <- renderPrint({
-        params()$data %>% count(.data[[params()$settings$visit_col]], .data[[params()$settings$tpt_col]], sort=FALSE) %>% data.frame
+        params()$data$ecg %>%
+            count(.data[[params()$settings$ecg$visit_col]], .data[[params()$settings$ecg$tpt_col]], sort = FALSE) %>%
+            data.frame()
     })
-    
-    #draw the chart
+
+
+    observe({
+        req(input$age, input$sex, input$race)
+
+        dm_subset <- params()$data$dm %>%
+            select(one_of(
+                params()$settings$dm$id_col,
+                params()$settings$dm$sex_col,
+                params()$settings$dm$race_col,
+                params()$settings$dm$age_col
+            ))
+
+        rv$filter_ecg_data <- params()$data$ecg %>%
+            left_join(dm_subset, by = params()$settings$dm$id_col) %>%
+            filter(
+                .data[[rv$sex_col]] %in% input$sex,
+                .data[[rv$race_col]] %in% input$race,
+                .data[[rv$age_col]] >= input$age[1] & .data[[rv$age_col]] <= input$age[2]
+            )
+    })
+
+    # draw the chart
     output$QT_OutlierExplorer <- renderPlotly({
-        
         req(input$measures)
-        QT_Outlier_Explorer(params()$data, settingsR())
+        QT_Outlier_Explorer(rv$filter_ecg_data, settingsR())
     })
-    
-    #central tendency
+
+    # central tendency
     output$QT_meanPlot <- renderPlotly({
-        
         req(input$measures)
-        QT_Central_Tendency(params()$data, settingsR())
+        QT_Central_Tendency(rv$filter_ecg_data, settingsR())
     })
 }

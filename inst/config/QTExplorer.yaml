@@ -6,6 +6,7 @@ package: qtexplorer
 export: true
 domain: 
   - ecg
+  - dm
 workflow:
   ui: QT_Explorer_ui
   server: QT_Explorer_server
