@@ -115,6 +115,7 @@ QT_Explorer_server <- function(input, output, session, params) {
     settingsR <- reactive({
         settings <- params()$settings$ecg
         settings$measure_values <- input$measures
+        settings$group_col <- params()$settings$dm$group_col
         return(settings)
     })
 
@@ -135,10 +136,19 @@ QT_Explorer_server <- function(input, output, session, params) {
                 params()$settings$dm$id_col,
                 params()$settings$dm$sex_col,
                 params()$settings$dm$race_col,
-                params()$settings$dm$age_col
+                params()$settings$dm$age_col, 
+                params()$settings$dm$group_col
             ))
 
         rv$filter_ecg_data <- params()$data$ecg %>%
+            select(  # remove these variables if they exist in ecg, to avoid merge conflict
+                -one_of(
+                    params()$settings$dm$sex_col,
+                    params()$settings$dm$race_col,
+                    params()$settings$dm$age_col,
+                    params()$settings$dm$group_col
+                )
+            ) %>%
             left_join(dm_subset, by = params()$settings$dm$id_col) %>%
             filter(
                 .data[[rv$sex_col]] %in% input$sex,

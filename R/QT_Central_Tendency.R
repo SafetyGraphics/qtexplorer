@@ -35,11 +35,10 @@ QT_Central_Tendency <- function(data, settings)
 
     #TODO: handle cross-over TQT study, VISIT-TPT scenario
     #TODO: add mean profile plot
-    
 
     data2 <- data %>%
         filter(.data[[settings$measure_col]] %in% settings$measure_values) %>%
-        group_by(.data[[settings$treatment_col]], .data[[settings$visit_col]]) %>%
+        group_by(.data[[settings$group_col]], .data[[settings$visit_col]]) %>%
         summarise(
             Mean = mean(.data[[ settings$value_col ]]),
             sd = sd(.data[[ settings$value_col ]]),
@@ -50,7 +49,7 @@ QT_Central_Tendency <- function(data, settings)
     pd <- position_dodge(.3)  # Save the dodge spec because we use it repeatedly
     
     fig0 <- ggplot(data2, aes(x = .data[[settings$visit_col]], y = Mean , 
-                              colour = .data[[settings$treatment_col]], group = .data[[settings$treatment_col]])) +
+                              colour = .data[[settings$group_col]], group = .data[[settings$group_col]])) +
         geom_errorbar(
             aes(ymin = Mean - se, ymax = Mean + se),
             width = .2,
