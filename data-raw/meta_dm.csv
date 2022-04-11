@@ -1,6 +1,6 @@
 text_key,domain,col_key,field_key,type,label,description,multiple,standard_adam,standard_sdtm
 id_col,dm,id_col,,column,ID column,Unique subject identifier variable name.,FALSE,USUBJID,USUBJID
-group_col,dm,group_col,,column,group Column,group Column,FALSE,ARM,ARM
+group_col,dm,group_col,,column,Group Column,Group Column,FALSE,ARM,ARM
 sex_col,dm,sex_col,,column,Sex Column,Sex Column,FALSE,SEX,SEX
 race_col,dm,race_col,,column,Race Column,Race Column,FALSE,RACE,RACE
 age_col,dm,age_col,,column,Age Column,Age Column,FALSE,AGE,AGE
