@@ -14,43 +14,6 @@ qtCharts <- makeChartConfig(
 
 length(qtCharts)
 
-mapping_TQT <- yaml::read_yaml(
-    text = "
-ecg:
-  id_col: USUBJID
-  value_col: AVAL
-  measure_col: PARAM
-  measure_values:
-    QT: QT
-    QTcF: QTcF
-    QTcB: ''
-    RR: RR
-    QRS: QRS
-  normal_col_low: ''
-  normal_col_high: ''
-  studyday_col: ADY
-  visit_col: ATPT
-  visitn_col: ATPTN
-  tpt_col: ATPT
-  tptn_col: ATPTN
-  period_col: APERIOD
-  unit_col: ''
-  baseline_flag_col: ABLFL
-  baseline_flag_values: 'Y'
-  treatment_col: TRTA
-  analysis_flag_col: ''
-  analysis_flag_values: ''
-dm:
-  id_col: USUBJID
-  group_col: ARM
-  group_values:
-  sex_col: SEX
-  race_col: RACE
-  age_col: AGE
-"
-)
-
-
 meta1 <- makeMeta(qtCharts)
 
 # eg_ph2 data
@@ -100,7 +63,7 @@ eg_ph2_new <- qtexplorer::eg_ph2 %>%
  safetyGraphicsApp(
     charts = qtCharts,
     domainData = list(ecg = eg_ph2_new, dm = qtexplorer::dm_ph2),
-    # meta = safetyCharts::meta_ecg,
+    meta = meta1, 
     mapping = mapping_ph2
     , runNow = FALSE
  )
