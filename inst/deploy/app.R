@@ -4,7 +4,7 @@ library(shinyjs)
 library(shiny)
 
 library(qtexplorer)
-devtools::load_all()
+# devtools::load_all()
 
 # test qtexplorer
 qtCharts <- safetyGraphics::makeChartConfig(packages = "qtexplorer") %>%
@@ -15,7 +15,7 @@ qtCharts <- safetyGraphics::makeChartConfig(packages = "qtexplorer") %>%
 
 length(qtCharts)
 
-#meta1 <- makeMeta(qtCharts)
+# meta1 <- makeMeta(qtCharts)
 
 
 # eg_ph2 data
@@ -62,7 +62,7 @@ eg_ph2_new <- qtexplorer::eg_ph2 %>%
 
 # TQT ADaM exmaple
 adeg_new <- qtexplorer::adeg %>%
-  mutate(ANRHI=0, ANRLO=0)
+  mutate(ANRHI = 0, ANRLO = 0)
 
 
 mapping_TQT <- yaml::read_yaml(
@@ -103,24 +103,26 @@ dm:
 
 ui <- fluidPage(
   useShinyjs(),
-  tags$div(id=("div_dataloader"),
-
-           h4("Data Loader"),
-
-           selectInput("dataSel", "Select Data", choices = c("TQT ADaM Example", "Non TQT Ph2"), selected = "Non TQT Ph2"),
-           hr(),
-           actionButton("runApp", "Run App")
-
+  tags$div(
+    id = ("div_dataloader"),
+    h4("Data Loader"),
+    selectInput("dataSel", "Select Data", choices = c("TQT ADaM Example", "Non TQT Ph2"), selected = "Non TQT Ph2"),
+    actionButton("runApp", "Run App", icon("paper-plane"),
+      style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+    ),
+    tags$hr(),
+    wellPanel(
+      uiOutput("dataDescription"),
+      uiOutput("DataPreview")
+    )
   ),
-
   shinyjs::hidden(
-    tags$div( id=("div_sg_app"),
-              tags$div(
-                actionLink(("back2dataloader"), label="Reload Data", icon("undo"), class = "header-btn")
-              )
-              ,
-              uiOutput("sg_cond")
-
+    tags$div(
+      id = ("div_sg_app"),
+      tags$div(
+        actionLink(("back2dataloader"), label = "Reload Data", icon("undo"), class = "header-btn")
+      ),
+      uiOutput("sg_cond")
     )
   )
 )
@@ -128,6 +130,42 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
+  output$dataDescription <- renderUI({
+    if (input$dataSel == "Non TQT Ph2") {
+      tagList(
+        tags$a("Link to Ph2b Example data description",
+          href = "https://github.com/SafetyGraphics/qtexplorer/blob/dev/data-raw/Phase2_Example_Description.docx?raw=true",
+          target = "_blank"
+        ),
+        tags$br(),
+        tags$hr()
+      )
+    } else if (input$dataSel == "TQT ADaM Example") {
+      # Sample ADEG data
+      # https://physionet.org/content/ecgcipa/1.0.0/
+      # https://physionet.org/content/ecgcipa/1.0.0/adeg.csv
+      tagList(
+        h3("CiPA ECG Validation Study: FDA Thorough QT Example"),
+        tags$a("LINK to Study Description and Data", href = "https://physionet.org/content/ecgcipa/1.0.0/", target = "_blank"),
+        tags$br(),
+        tags$hr()
+      )
+    }
+  })
+
+
+  output$DataPreview <- renderUI({
+    req(v$list_dm, v$list_ecg)
+    tagList(
+      tabsetPanel(
+        tabPanel(title = "DM", DT::DTOutput("dmDT")),
+        tabPanel(title = "ECG", DT::DTOutput("ecgDT"))
+      )
+    )
+  })
+
+  output$dmDT <- DT::renderDT(v$list_dm[[1]])
+  output$ecgDT <- DT::renderDT(v$list_ecg[[1]])
 
   shinyjs::disable("runApp")
 
@@ -136,42 +174,41 @@ server <- function(input, output, session) {
   delayTime <- 3000
   maxFileSize <- NULL
 
-  v <- reactiveValues(list_from_dataloader = NULL,
-                      list_dm = NULL,
-                      list_ecg = NULL,
-                      mapping = NULL)
+  v <- reactiveValues(
+    list_from_dataloader = NULL,
+    list_dm = NULL,
+    list_ecg = NULL,
+    mapping = NULL
+  )
 
 
   observe({
-
-    if(input$dataSel == "Non TQT Ph2") {
-
-      v$list_dm <- list(dm=qtexplorer::dm_ph2)
-      v$list_ecg <- list(ecg=eg_ph2_new)
+    if (input$dataSel == "Non TQT Ph2") {
+      v$list_dm <- list(dm = qtexplorer::dm_ph2)
+      v$list_ecg <- list(ecg = eg_ph2_new)
       v$mapping <- mapping_ph2
-
     } else if (input$dataSel == "TQT ADaM Example") {
-
-      v$list_dm <- list(dm=qtexplorer::adsl)
-      v$list_ecg <- list(ecg=adeg_new)
+      v$list_dm <- list(dm = qtexplorer::adsl)
+      v$list_ecg <- list(ecg = adeg_new)
       v$mapping <- mapping_TQT
-
     }
 
-    v$list_from_dataloader <- c(v$list_dm,v$list_ecg)
+    v$list_from_dataloader <- c(v$list_dm, v$list_ecg)
     sum_length_list <- sum(unlist(lapply(v$list_from_dataloader, length)))
-    if(sum_length_list>0){shinyjs::enable("runApp")}
+    if (sum_length_list > 0) {
+      shinyjs::enable("runApp")
+    }
   })
 
 
 
   initStatus <- reactive({
-    ready<-FALSE
+    ready <- FALSE
     length_dD_list <- sum(do.call(rbind, lapply(v$list_from_dataloader, function(x) length(x))))
-    if(length_dD_list>0){
-      ready<-TRUE
+    if (length_dD_list > 0) {
+      ready <- TRUE
     }
-    return(list(ready=ready))
+    return(list(ready = ready))
   })
 
 
@@ -206,16 +243,14 @@ server <- function(input, output, session) {
 
 
     output$sg_cond <- renderUI({
-
-      if(input$dataSel == "Non TQT Ph2") {
-
-      safetyGraphicsUI(
-        "sg1",
-        config$meta,
-        config$domainData,
-        config$mapping,
-        config$standards
-      )
+      if (input$dataSel == "Non TQT Ph2") {
+        safetyGraphicsUI(
+          "sg1",
+          config$meta,
+          config$domainData,
+          config$mapping,
+          config$standards
+        )
       } else if (input$dataSel == "TQT ADaM Example") {
         safetyGraphicsUI(
           "sg2",
@@ -225,14 +260,12 @@ server <- function(input, output, session) {
           config$standards
         )
       }
-
     })
 
 
     # delay is needed to get the appendTab in mod_chartsNav to trigger properly
 
-    if(input$dataSel == "Non TQT Ph2") {
-
+    if (input$dataSel == "Non TQT Ph2") {
       shinyjs::delay(
         delayTime,
         callModule(
@@ -259,18 +292,14 @@ server <- function(input, output, session) {
         )
       )
     }
-
   })
 
-  observeEvent(input$back2dataloader,{
-    shinyjs::hide(id="div_sg_app")
-    shinyjs::show(id="div_dataloader")
+  observeEvent(input$back2dataloader, {
+    shinyjs::hide(id = "div_sg_app")
+    shinyjs::show(id = "div_dataloader")
     v$mapping <- NULL
     v$list_from_dataloader <- NULL
-
   })
-
-
 }
 
 app <- shinyApp(ui = ui, server = server)
