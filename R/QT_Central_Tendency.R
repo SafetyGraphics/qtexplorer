@@ -29,27 +29,41 @@
 
 
 
-QT_Central_Tendency <- function(data, settings)
-{
-    
+QT_Central_Tendency <- function(data, settings) {
 
-    #TODO: handle cross-over TQT study, VISIT-TPT scenario
-    #TODO: add mean profile plot
+
+    # TODO: handle cross-over TQT study, VISIT-TPT scenario
+    # TODO: add mean profile plot
+
+    # choose between observed or change values
+
+    if (settings$plot_what == "Observed") {
+        value_var <- settings$value_col
+        value_var_label <- paste0("Observed values: ", settings$measure_values)
+        href_lines <- c(450, 480, 500)
+    } else if (settings$plot_what == "Change") {
+        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
+        value_var_label <- paste0("Change from baseline: ", settings$measure_values)
+        href_lines <- c(30, 60)
+    }
+
 
     data2 <- data %>%
         filter(.data[[settings$measure_col]] %in% settings$measure_values) %>%
         group_by(.data[[settings$group_col]], .data[[settings$visit_col]]) %>%
         summarise(
-            Mean = mean(.data[[ settings$value_col ]]),
-            sd = sd(.data[[ settings$value_col ]]),
+            Mean = mean(.data[[value_var]]),
+            sd = sd(.data[[value_var]]),
             n = n(),
             se = sd / sqrt(n)
         )
-    
-    pd <- position_dodge(.3)  # Save the dodge spec because we use it repeatedly
-    
-    fig0 <- ggplot(data2, aes(x = .data[[settings$visit_col]], y = Mean , 
-                              colour = .data[[settings$group_col]], group = .data[[settings$group_col]])) +
+
+    pd <- position_dodge(.3) # Save the dodge spec because we use it repeatedly
+
+    fig0 <- ggplot(data2, aes(
+        x = .data[[settings$visit_col]], y = Mean,
+        colour = .data[[settings$group_col]], group = .data[[settings$group_col]]
+    )) +
         geom_errorbar(
             aes(ymin = Mean - se, ymax = Mean + se),
             width = .2,
@@ -57,12 +71,14 @@ QT_Central_Tendency <- function(data, settings)
             colour = "black",
             position = pd
         ) +
+        ylab(value_var_label) +
+        geom_hline(yintercept = href_lines, linetype = 2, col = "red") +
         geom_line(position = pd) +
         geom_point(position = pd, size = 2.5) +
         theme_bw()
-    
-    fig <- fig0 %>% plotly::ggplotly()
-    
 
-return(fig)    
+    fig <- fig0 %>% plotly::ggplotly()
+
+
+    return(fig)
 }

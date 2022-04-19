@@ -1,6 +1,6 @@
 env: safetyGraphics
 label: QT Explorer - Module
-name: qTexplorerNew
+name: qtexplorer
 type: module
 package: qtexplorer
 export: true

@@ -15,12 +15,13 @@ QT_Explorer_ui <- function(id) {
     ns <- NS(id)
     sidebar <- sidebarPanel(
         uiOutput(ns("selectMeasures")),
+        selectizeInput(inputId = ns("plot_what"), label = "Plot observed or change?", choices = c("Observed", "Change"), selected = "Observed"),
         uiOutput(ns("selectSubgroups"))
     )
     main <- mainPanel(
         tabsetPanel(
-            tabPanel("QT Vis", plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),
             tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
+            tabPanel("QT Vis", plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),            
             tabPanel("QT Data Info", verbatimTextOutput(ns("info")))
         )
     )
@@ -109,6 +110,28 @@ QT_Explorer_server <- function(input, output, session, params) {
     })
 
 
+    # derive change from baseline
+
+    ecg_data <- reactive({
+
+        data_baseline <- params()$data$ecg %>%
+            filter(.data[[params()$settings$ecg$baseline_flag_col]] == params()$settings$ecg$baseline_flag_values)
+        
+        vars_remove <- c("BASE", "BL", "CHG", "CHANGE")
+        ecg <- params()$data$ecg %>% select( -one_of(vars_remove) ) # remove CHG and BASE from ecg, if any, to avoid conflict
+
+        ecg_new <- data_baseline %>%
+            mutate(BASE = .data[[params()$settings$ecg$value_col]]) %>%
+            select(.data$BASE, params()$settings$ecg$id_col, params()$settings$ecg$measure_col) %>%
+            right_join(
+                ecg, 
+                by = c(params()$settings$ecg$id_col, params()$settings$ecg$measure_col)
+            ) %>%
+            mutate(CHG = .data[[params()$settings$ecg$value_col]] - .data$BASE)
+    })
+
+
+
     # Populate control with measures and select all by default
 
     # customize selected measures based on input
@@ -116,6 +139,7 @@ QT_Explorer_server <- function(input, output, session, params) {
         settings <- params()$settings$ecg
         settings$measure_values <- input$measures
         settings$group_col <- params()$settings$dm$group_col
+        settings$plot_what <- input$plot_what
         return(settings)
     })
 
@@ -136,12 +160,12 @@ QT_Explorer_server <- function(input, output, session, params) {
                 params()$settings$dm$id_col,
                 params()$settings$dm$sex_col,
                 params()$settings$dm$race_col,
-                params()$settings$dm$age_col, 
+                params()$settings$dm$age_col,
                 params()$settings$dm$group_col
             ))
 
-        rv$filter_ecg_data <- params()$data$ecg %>%
-            select(  # remove these variables if they exist in ecg, to avoid merge conflict
+        rv$filter_ecg_data <- ecg_data() %>%
+            select( # remove these variables if they exist in ecg, to avoid merge conflict
                 -one_of(
                     params()$settings$dm$sex_col,
                     params()$settings$dm$race_col,
@@ -165,7 +189,7 @@ QT_Explorer_server <- function(input, output, session, params) {
 
     # central tendency
     output$QT_meanPlot <- renderPlotly({
-        req(input$measures)
+        req(input$measures)       
         QT_Central_Tendency(rv$filter_ecg_data, settingsR())
     })
 }
