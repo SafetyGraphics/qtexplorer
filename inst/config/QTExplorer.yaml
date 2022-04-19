@@ -4,6 +4,7 @@ name: qtexplorer
 type: module
 package: qtexplorer
 export: true
+order: 1
 domain: 
   - ecg
   - dm
