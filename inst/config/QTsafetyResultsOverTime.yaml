@@ -3,7 +3,7 @@ label: QT Results Over Time
 type: htmlwidget
 package: qtexplorer
 export: true
-order: -5
+order: 3
 domain: 
   - ecg
 workflow:
