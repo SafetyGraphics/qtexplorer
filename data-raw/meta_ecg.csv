@@ -1,5 +1,7 @@
 text_key,domain,col_key,field_key,type,label,description,multiple,standard_adam,standard_sdtm
 id_col,ecg,id_col,NA,column,ID column,Unique subject identifier variable name.,FALSE,USUBJID,USUBJID
+base_col,ecg,base_col,NA,column,Baseline value column,QT baseline result variable name.,FALSE,BASE,NA
+change_col,ecg,change_col,NA,column,Change from baseline value column,QT change from baseline result variable name.,FALSE,CHG,NA
 value_col,ecg,value_col,NA,column,Value column,QT result variable name.,FALSE,AVAL,EGSTRESN
 measure_col,ecg,measure_col,NA,column,Measure column,QT measure variable name,FALSE,PARAM,EGTEST
 normal_col_low,ecg,normal_col_low,NA,column,Lower Limit of Normal column,Lower limit of normal variable name,FALSE,ANRLO,EGSTNRLO
