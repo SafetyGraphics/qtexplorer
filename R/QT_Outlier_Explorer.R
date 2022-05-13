@@ -45,60 +45,62 @@ QT_Outlier_Explorer <- function(data, settings)
         )
     }
     
-    
-    # derive baseline and change from baseline
+    # choose between observed or change values
+
+    if (settings$plot_what == "Observed") {
+        value_var <- settings$value_col
+    } else if (settings$plot_what == "Change") {
+        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
+    }	
+	
     data_filtered <- data %>%
-        filter(.data[[settings$measure_col]] %in% settings$measure_values)  
+        filter(.data[[settings$measure_col]] %in% settings$measure_values) 
+	   
+	#Derive columns to be presented on x and y axis based on user choices
+    data1 <- data_filtered %>% 
+        mutate(X_VAR = .data[[settings$Outlier_X_var]], 
+		       Y_VAR = .data[[value_var]]
+			   )
+	
+    #Derive X axis title based on selected variables	
+	if(settings$Outlier_X_var == settings$value_col){X_Title = "Observed Values"}
+	  else if(settings$Outlier_X_var == settings$base_col){X_Title = "Baseline"}
     
-    data_bl <- data_filtered %>% 
-        filter( .data[[settings$baseline_flag_col]] == settings$baseline_flag_values) 
-    
-    
-    data1 <- data_bl %>% 
-        mutate( BL = .data[[ settings$value_col ]]) %>% 
-        select( .data$BL, settings$id_col) %>%
-        right_join(data_filtered, by = settings$id_col) %>% 
-        mutate(CHANGE = .data[[settings$value_col]] - .data$BL) %>%
-        mutate(Y450 = 450-.data$BL, Y480=480-.data$BL, Y500=500-.data$BL) 
-    
-    
-    #TODO: handle cross-over TQT study, VISIT-TPT scenario
-    #TODO: add mean profile plot
-    
-    
-    
+    #Derive Y axis title based on selected variables	
+	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
+	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
+	
     fig <- data1 %>%
     plot_ly(
-        x         = ~BL,
-        y         = ~CHANGE,
-        size      = ~CHANGE,
-        color     = ~.data[[settings$treatment_col]],
+        x         = ~X_VAR,
+        y         = ~Y_VAR,
+        size      = 10,
+        color     = ~.data[[settings$group_col]],
         frame     = ~paste0(sprintf("%02d", .data[[settings$visitn_col]]), " - ", .data[[settings$visit_col]] ),
         text      = ~paste0(.data[[settings$measure_col]], "<br>Time point: ", .data[[settings$visit_col]], "<br>Treatment: ",
-                            .data[[settings$treatment_col]], "<br>Baseline:", BL, "<br>Change: ", CHANGE),
+                            .data[[settings$group_col]], "<br>Baseline:", X_VAR, "<br>Change: ", Y_VAR),
         hoverinfo = "text",
         type      = 'scatter',
-        mode      = 'markers'
+        mode      = 'markers',
+		key       = ~.data[[settings$id_col]],		
+		source    = 'QT_outlier_Explorer_click'
     ) %>%
     animation_slider(
         currentvalue = list(prefix = "Time Point: ")
     ) %>%
-    layout(shapes = 
+    layout(
+	  margin = list(b=200),
+	  xaxis  = list(title = X_Title),
+	  yaxis  = list(title = Y_Title),
+	  shapes = 
         list(
-            hline(0), 
             hline(30), 
             hline(60),
-            list(
-                type="line", 
-                #width= 2,  
-                line = list(dash = 'dash',color = "red"),
-                x0=0, 
-                x1=450, 
-                y0=450, 
-                y1=0
+            hline(450), 
+            hline(480), 
+            hline(500)
             )
         )
-    )
 
 return(fig)    
 }

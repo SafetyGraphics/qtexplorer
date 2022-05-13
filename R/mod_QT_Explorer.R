@@ -21,7 +21,12 @@ QT_Explorer_ui <- function(id) {
     main <- mainPanel(
         tabsetPanel(
             tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
-            tabPanel("QT Vis", plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),            
+            tabPanel("QT Vis",
+			  fluidRow(uiOutput(ns("selectOutlierX")), "Click a point for individual data and line plots"),
+			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),
+              fluidRow(tableOutput(ns("QT_OutlierExplorer_DrillDownTable"))),			  
+			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_DrillDown")))			
+			),          
             tabPanel("QT Data Info", verbatimTextOutput(ns("info")))
         )
     )
@@ -59,6 +64,10 @@ QT_Explorer_server <- function(input, output, session, params) {
     observe({
         rv$measure_col <- params()$settings$ecg$measure_col
         rv$measures <- unique(params()$data$ecg[[rv$measure_col]])
+		
+		rv$base_col <- params()$settings$ecg$base_col
+		rv$change_col <- params()$settings$ecg$change_col
+		rv$value_col <- params()$settings$ecg$value_col		
 
         rv$sex_col <- params()$settings$dm$sex_col
         rv$age_col <- params()$settings$dm$age_col
@@ -113,7 +122,7 @@ QT_Explorer_server <- function(input, output, session, params) {
     # derive change from baseline
 
     ecg_data <- reactive({
-
+ 
         data_baseline <- params()$data$ecg %>%
             filter(.data[[params()$settings$ecg$baseline_flag_col]] == params()$settings$ecg$baseline_flag_values)
         
@@ -130,7 +139,16 @@ QT_Explorer_server <- function(input, output, session, params) {
             mutate(CHG = .data[[params()$settings$ecg$value_col]] - .data$BASE)
     })
 
-
+	# Allow user to choose x axis variable (base/aval) for the outlier plot
+	output$selectOutlierX <- renderUI({
+      selectizeInput(
+          inputId = ns("OutlierX"),
+          "Select X-Axis Variable: ",
+          multiple = FALSE,
+          choices = list(rv$base_col, rv$value_col),
+          selected = rv$base_col
+      )
+    })	
 
     # Populate control with measures and select all by default
 
@@ -140,6 +158,7 @@ QT_Explorer_server <- function(input, output, session, params) {
         settings$measure_values <- input$measures
         settings$group_col <- params()$settings$dm$group_col
         settings$plot_what <- input$plot_what
+		settings$Outlier_X_var <- input$OutlierX		
         return(settings)
     })
 
@@ -181,11 +200,23 @@ QT_Explorer_server <- function(input, output, session, params) {
             )
     })
 
-    # draw the chart
+    # outlier explorer chart
     output$QT_OutlierExplorer <- renderPlotly({
         req(input$measures)
         QT_Outlier_Explorer(rv$filter_ecg_data, settingsR())
     })
+	
+	# drill down plot for outlier explorer when point clicked on
+	output$QT_OutlierExplorer_DrillDown <- renderPlotly({ 
+        req(input$measures)	
+		QT_Outlier_Explorer_Drill_Down(rv$filter_ecg_data, settingsR())
+	})
+	
+	# drill down table for outlier explorer when point clicked on
+	output$QT_OutlierExplorer_DrillDownTable <- renderTable({ 
+        req(input$measures)	
+		QT_Outlier_Explorer_Drill_Down_Table(params()$data$dm, settingsR())
+	}, bordered=TRUE)		
 
     # central tendency
     output$QT_meanPlot <- renderPlotly({
