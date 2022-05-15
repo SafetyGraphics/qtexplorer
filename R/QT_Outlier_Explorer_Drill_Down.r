@@ -31,12 +31,6 @@
 QT_Outlier_Explorer_Drill_Down <- function(data, settings)
 {
 
-    if (settings$plot_what == "Observed") {
-        value_var <- settings$value_col
-    } else if (settings$plot_what == "Change") {
-        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
-    }	
-	
     #get info about subject when clicked on in click variable
     click = event_data("plotly_click", source="QT_outlier_Explorer_click")
 	#display nothing unless plot has been clicked
@@ -45,7 +39,6 @@ QT_Outlier_Explorer_Drill_Down <- function(data, settings)
 	#get ECG information from subject that was clicked on (for all parameters)
 	ECG_results <- data %>%
                    filter(.data[[settings$id_col]] %in% click$key[1]) %>%
-				   mutate(Y_VAR = .data[[value_var]]) %>%
 				   mutate(TITLE = paste0(.data[[settings$measure_col]], " (", .data[[settings$unit_col]], ")"), SPLIT = paste0(.data[[settings$measure_col]]))
 				   
 	#find the number of parameters to be presented and determine optimal plot height
@@ -59,17 +52,13 @@ QT_Outlier_Explorer_Drill_Down <- function(data, settings)
 	ECG_results2 <- ECG_results %>%
 				   right_join(Height, by = character())
 
-    #Derive Y axis titles based on selected variables	
-	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
-	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
-
 	#create the individual line plots for each parameter
-    fig <- ECG_results2 %>%
+    fig1 <- ECG_results2 %>%
            split(.$SPLIT) %>%
            lapply(function(d) 
               plot_ly(d,
                 x         = ~.data[[settings$visit_col]],
-                y         = ~Y_VAR,		
+                y         = ~CHG,		
                 type      = 'scatter',
                 mode      = 'lines+markers'
 			  ) %>%
@@ -81,7 +70,7 @@ QT_Outlier_Explorer_Drill_Down <- function(data, settings)
 				                   zerolinecolor = '#ffff', zerolinewidth = 2, gridcolor = 'ffff',
 								   type = "category"
 								   ),
-	  	         yaxis      = list(title = Y_Title),
+	  	         yaxis      = list(title = "Change from Baseline"),
 				 plot_bgcolor='#e5ecf6',
 				 height     = ~Height_n
 			  )%>%
@@ -98,6 +87,44 @@ QT_Outlier_Explorer_Drill_Down <- function(data, settings)
 	         )
 	       ) %>%
 		   subplot(nrows = NROW(.), shareX=TRUE, shareY=FALSE, titleY=TRUE, titleX=TRUE)	
+
+    fig2 <- ECG_results2 %>%
+           split(.$SPLIT) %>%
+           lapply(function(d) 
+              plot_ly(d,
+                x         = ~.data[[settings$visit_col]],
+                y         = ~.data[[settings$value_col]],		
+                type      = 'scatter',
+                mode      = 'lines+markers'
+			  ) %>%
+			  layout (
+			     showlegend = FALSE,
+			  	 xaxis      = list(title = 'Time Point', 
+				                   ticktext = ~paste0(sprintf("%02d", .data[[settings$visitn_col]]), " - ", .data[[settings$visit_col]]), 
+								   tickvals = ~.data[[settings$visit_col]],
+				                   zerolinecolor = '#ffff', zerolinewidth = 2, gridcolor = 'ffff',
+								   type = "category"
+								   ),
+	  	         yaxis      = list(title = "Observed Value"),
+				 plot_bgcolor='#e5ecf6',
+				 height     = ~Height_n
+			  )%>%
+		     add_annotations(
+                text = ~.data[["TITLE"]],
+                x = 0.5,
+                y = 1.0,
+                yref = "paper",
+                xref = "paper",
+                xanchor = "middle",
+                yanchor = "top",
+                showarrow = FALSE,
+                font = list(size = 15)
+	         )
+	       ) %>%
+		   subplot(nrows = NROW(.), shareX=TRUE, shareY=FALSE, titleY=TRUE, titleX=TRUE)	   
+		  
+         #arrange the two plots side by side		  
+		 fig <- subplot(fig1, fig2, shareX=TRUE, shareY=FALSE, titleY=TRUE, titleX=TRUE, margin = 0.05)
 
 	 return(fig)
 
