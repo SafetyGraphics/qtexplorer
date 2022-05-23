@@ -15,18 +15,25 @@ QT_Explorer_ui <- function(id) {
     ns <- NS(id)
     sidebar <- sidebarPanel(
         uiOutput(ns("selectMeasures")),
-        selectizeInput(inputId = ns("plot_what"), label = "Plot observed or change?", choices = c("Observed", "Change"), selected = "Observed"),
+        selectizeInput(inputId = ns("plot_what"), label = "Select Y-Axis Variable", choices = c("Observed", "Change"), selected = "Observed"),
+		uiOutput(ns("selectOutlierX")),
         uiOutput(ns("selectSubgroups"))
     )
     main <- mainPanel(
         tabsetPanel(
             tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
-            tabPanel("QT Vis",
-			  fluidRow(uiOutput(ns("selectOutlierX")), "Click a point for individual data and line plots"),
+            tabPanel("All Observations",
+			  fluidRow("Click a point for individual data and line plots"),
+			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_Overall"), height = 800)),
+              fluidRow(tableOutput(ns("QT_OutlierExplorer_DrillDownTable_Overall"))),	  
+			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_DrillDown_Overall")))			
+			), 
+            tabPanel("Observations Over Time",
+			  fluidRow("Click a point for individual data and line plots"),			  
 			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer"), height = 800)),
               fluidRow(tableOutput(ns("QT_OutlierExplorer_DrillDownTable"))),			  
 			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_DrillDown")))			
-			),          
+			), 			
             tabPanel("QT Data Info", verbatimTextOutput(ns("info")))
         )
     )
@@ -200,17 +207,35 @@ QT_Explorer_server <- function(input, output, session, params) {
             )
     })
 
-    # outlier explorer chart
+    # outlier explorer chart - overall 
+    output$QT_OutlierExplorer_Overall <- renderPlotly({
+        req(input$measures)
+        QT_Outlier_Explorer_Overall(rv$filter_ecg_data, settingsR())
+    })
+
+    # outlier explorer chart - animation slider over time
     output$QT_OutlierExplorer <- renderPlotly({
         req(input$measures)
         QT_Outlier_Explorer(rv$filter_ecg_data, settingsR())
     })
+	
+	# drill down plot for outlier explorer when point clicked on - for overall plot
+	output$QT_OutlierExplorer_DrillDown_Overall <- renderPlotly({ 
+        req(input$measures)	
+		QT_Outlier_Explorer_Drill_Down(rv$filter_ecg_data, settingsR())
+	})	
 	
 	# drill down plot for outlier explorer when point clicked on
 	output$QT_OutlierExplorer_DrillDown <- renderPlotly({ 
         req(input$measures)	
 		QT_Outlier_Explorer_Drill_Down(rv$filter_ecg_data, settingsR())
 	})
+
+	# drill down table for outlier explorer when point clicked on - for overall plot
+	output$QT_OutlierExplorer_DrillDownTable_Overall <- renderTable({ 
+        req(input$measures)	
+		QT_Outlier_Explorer_Drill_Down_Table(params()$data$dm, settingsR())
+	}, bordered=TRUE)	
 	
 	# drill down table for outlier explorer when point clicked on
 	output$QT_OutlierExplorer_DrillDownTable <- renderTable({ 

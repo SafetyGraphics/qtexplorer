@@ -29,7 +29,7 @@
 
 
 
-QT_Outlier_Explorer <- function(data, settings)
+QT_Outlier_Explorer_Overall <- function(data, settings)
 {
     
     # horizontal reference line
@@ -44,9 +44,15 @@ QT_Outlier_Explorer <- function(data, settings)
             line = list(color = color, width= 2, dash = 'dash')
         )
     }
-    
+	
+	#define reference lines based on Y axis variable
+    if (settings$plot_what == "Observed") {
+        reflines <- list(hline(450), hline(480), hline(500))
+	} else if (settings$plot_what == "Change") {
+        reflines <- list(hline(30), hline(60))		
+    }
+	    
     # choose between observed or change values
-
     if (settings$plot_what == "Observed") {
         value_var <- settings$value_col
     } else if (settings$plot_what == "Change") {
@@ -76,7 +82,6 @@ QT_Outlier_Explorer <- function(data, settings)
         y         = ~Y_VAR,
         size      = 10,
         color     = ~.data[[settings$group_col]],
-        frame     = ~paste0(sprintf("%02d", .data[[settings$visitn_col]]), " - ", .data[[settings$visit_col]] ),
         text      = ~paste0(.data[[settings$measure_col]], "<br>Time point: ", .data[[settings$visit_col]], "<br>Treatment: ",
                             .data[[settings$group_col]], "<br>X-Value:", X_VAR, "<br>Y-Value: ", Y_VAR),
         hoverinfo = "text",
@@ -85,22 +90,12 @@ QT_Outlier_Explorer <- function(data, settings)
 		key       = ~.data[[settings$id_col]],		
 		source    = 'QT_outlier_Explorer_click'
     ) %>%
-    animation_slider(
-        currentvalue = list(prefix = "Time Point: ")
-    ) %>%
     layout(
-	  margin = list(b=200),
+	  margin = list(b=100),
 	  xaxis  = list(title = X_Title),
 	  yaxis  = list(title = Y_Title),
-	  shapes = 
-        list(
-            hline(30), 
-            hline(60),
-            hline(450), 
-            hline(480), 
-            hline(500)
-            )
-        )
+	  shapes = reflines
+         )
 
 return(fig)    
 }
