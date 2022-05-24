@@ -1,0 +1,15 @@
+env: safetyGraphics
+label: QT Central Tendancy Plot
+name: qt_central_tendancy
+type: module
+package: qtexplorer
+export: true
+order: 1
+domain: 
+  - ecg
+  - dm
+workflow:
+  ui: QT_central_tendancy_ui
+  server: QT_central_tendancy_server
+links:
+  Homepage: https://github.com/safetygraphics/qtexplorer

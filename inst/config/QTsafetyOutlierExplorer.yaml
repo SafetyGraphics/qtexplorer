@@ -3,7 +3,7 @@ label: QT Outlier Explorer
 type: htmlwidget
 package: qtexplorer
 export: true
-order: 2
+order: 20
 domain: 
   - ecg
 workflow:
