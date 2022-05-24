@@ -93,8 +93,29 @@ QT_central_tendancy_server <- function(input, output, session, params) {
                 by = c(params()$settings$ecg$id_col, params()$settings$ecg$measure_col)
             ) %>%
             mutate(CHG = .data[[params()$settings$ecg$value_col]] - .data$BASE)
-    })
 
+
+        # merge DM variabels           
+        dm_subset <- params()$data$dm %>%
+            select(one_of(
+                params()$settings$dm$id_col,
+                params()$settings$dm$sex_col,
+                params()$settings$dm$race_col,
+                params()$settings$dm$age_col,
+                params()$settings$dm$group_col
+            ))
+
+        ecg_merge_data <- ecg_new %>%
+            select( # remove these variables if they exist in ecg, to avoid merge conflict
+                -one_of(
+                    params()$settings$dm$sex_col,
+                    params()$settings$dm$race_col,
+                    params()$settings$dm$age_col,
+                    params()$settings$dm$group_col
+                )
+            ) %>%
+            left_join(dm_subset, by = params()$settings$dm$id_col) 
+    })
     
     # Populate control with measures and select all by default
 
