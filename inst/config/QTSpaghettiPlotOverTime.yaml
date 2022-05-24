@@ -1,5 +1,5 @@
 env: safetyGraphics
-label: QT Outlier Explorer
+label: QT Spaghetti Plot Over Time
 type: htmlwidget
 package: qtexplorer
 export: true

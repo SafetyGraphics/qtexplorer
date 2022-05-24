@@ -7,11 +7,11 @@ library(qtexplorer)
 # devtools::load_all()
 
 # test qtexplorer
-qtCharts <- safetyGraphics::makeChartConfig(packages = "qtexplorer") %>%
-  purrr::map(function(chart) {
-    chart$order <- 1
-    return(chart)
-  })
+qtCharts <- safetyGraphics::makeChartConfig(packages = "qtexplorer") #%>%
+#  purrr::map(function(chart) {
+#    chart$order <- 1
+#    return(chart)
+#  })
 
 length(qtCharts)
 
@@ -303,4 +303,4 @@ server <- function(input, output, session) {
 }
 
 app <- shinyApp(ui = ui, server = server)
-app
+runApp(app)

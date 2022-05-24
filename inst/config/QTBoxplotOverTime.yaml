@@ -1,5 +1,5 @@
 env: safetyGraphics
-label: QT Results Over Time
+label: QT Boxplot Over Time
 type: htmlwidget
 package: qtexplorer
 export: true
