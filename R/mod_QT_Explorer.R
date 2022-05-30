@@ -21,7 +21,7 @@ QT_Explorer_ui <- function(id) {
     )
     main <- mainPanel(
         tabsetPanel(
-            tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
+            #tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
             tabPanel("All Observations",
 			  fluidRow("Click a point for individual data and line plots"),
 			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_Overall"), height = 800)),
