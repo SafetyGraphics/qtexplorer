@@ -17,11 +17,10 @@ QT_Explorer_ui <- function(id) {
         uiOutput(ns("selectMeasures")),
         selectizeInput(inputId = ns("plot_what"), label = "Select Y-Axis Variable", choices = c("Observed", "Change"), selected = "Observed"),
 		uiOutput(ns("selectOutlierX")),
-        uiOutput(ns("selectSubgroups"))
+        uiOutput(ns("RefLines"))
     )
     main <- mainPanel(
         tabsetPanel(
-            #tabPanel("QT Central Tendency", plotlyOutput(ns("QT_meanPlot"), height = 800)),
             tabPanel("All Observations",
 			  fluidRow("Click a point for individual data and line plots"),
 			  fluidRow(plotlyOutput(ns("QT_OutlierExplorer_Overall"), height = 800)),
@@ -75,15 +74,6 @@ QT_Explorer_server <- function(input, output, session, params) {
 		rv$base_col <- params()$settings$ecg$base_col
 		rv$change_col <- params()$settings$ecg$change_col
 		rv$value_col <- params()$settings$ecg$value_col		
-
-        rv$sex_col <- params()$settings$dm$sex_col
-        rv$age_col <- params()$settings$dm$age_col
-        rv$race_col <- params()$settings$dm$race_col
-
-        rv$sex_vals <- unique(params()$data$dm[[rv$sex_col]])
-        rv$race_vals <- unique(params()$data$dm[[rv$race_col]])
-        rv$age_min <- min(params()$data$dm[[rv$age_col]], na.rm = TRUE)
-        rv$age_max <- max(params()$data$dm[[rv$age_col]], na.rm = TRUE)
     })
 
     output$selectMeasures <- renderUI({
@@ -96,35 +86,6 @@ QT_Explorer_server <- function(input, output, session, params) {
             selected = "QTcF"
         )
     })
-
-    # subgroup dropdowns
-    output$selectSubgroups <- renderUI({
-        tagList(
-            selectizeInput(
-                ns("sex"),
-                "Sex",
-                multiple = TRUE,
-                choices = rv$sex_vals,
-                selected = rv$sex_vals
-            ),
-            selectizeInput(
-                ns("race"),
-                "Race",
-                multiple = TRUE,
-                choices = rv$race_vals,
-                selected = rv$race_vals
-            ),
-            sliderInput(
-                ns("age"),
-                "Age",
-                min = rv$age_min,
-                max = rv$age_max,
-                step = 1,
-                value = c(rv$age_min, rv$age_max)
-            )
-        )
-    })
-
 
     # derive change from baseline
 
@@ -156,6 +117,26 @@ QT_Explorer_server <- function(input, output, session, params) {
           selected = rv$base_col
       )
     })	
+	
+	#allow user to remove reference lines (conditional on y axis variable)
+	Reflines_choices <- reactive({
+	  if(input$plot_what == "Observed"){
+	      c("QTc Interval > 450",
+          "QTc Interval > 480",
+          "QTc Interval > 500")
+		  }
+	  else if(input$plot_what == "Change"){
+	      c("QTc Change from Baseline > 30",
+          "QTc Change from Baseline > 60",
+		  "QTc Change from Baseline x=y Line")
+		  }
+	})	
+	output$RefLines <- renderUI({
+		#add checkboxes for user to remove reference lines
+		checkboxGroupInput(inputId = ns("RefLines"), label= "Select Reference Lines to Display:", 
+		                   choices= Reflines_choices(),
+					       selected = Reflines_choices())
+	})
 
     # Populate control with measures and select all by default
 
@@ -166,6 +147,7 @@ QT_Explorer_server <- function(input, output, session, params) {
         settings$group_col <- params()$settings$dm$group_col
         settings$plot_what <- input$plot_what
 		settings$Outlier_X_var <- input$OutlierX		
+		settings$RefLines <- input$RefLines			
         return(settings)
     })
 
@@ -179,32 +161,20 @@ QT_Explorer_server <- function(input, output, session, params) {
 
 
     observe({
-        req(input$age, input$sex, input$race)
 
         dm_subset <- params()$data$dm %>%
             select(one_of(
                 params()$settings$dm$id_col,
-                params()$settings$dm$sex_col,
-                params()$settings$dm$race_col,
-                params()$settings$dm$age_col,
                 params()$settings$dm$group_col
             ))
 
         rv$filter_ecg_data <- ecg_data() %>%
             select( # remove these variables if they exist in ecg, to avoid merge conflict
                 -one_of(
-                    params()$settings$dm$sex_col,
-                    params()$settings$dm$race_col,
-                    params()$settings$dm$age_col,
                     params()$settings$dm$group_col
                 )
             ) %>%
-            left_join(dm_subset, by = params()$settings$dm$id_col) %>%
-            filter(
-                .data[[rv$sex_col]] %in% input$sex,
-                .data[[rv$race_col]] %in% input$race,
-                .data[[rv$age_col]] >= input$age[1] & .data[[rv$age_col]] <= input$age[2]
-            )
+            left_join(dm_subset, by = params()$settings$dm$id_col)
     })
 
     # outlier explorer chart - overall 
@@ -243,9 +213,4 @@ QT_Explorer_server <- function(input, output, session, params) {
 		QT_Outlier_Explorer_Drill_Down_Table(params()$data$dm, settingsR())
 	}, bordered=TRUE)		
 
-    # central tendency
-    output$QT_meanPlot <- renderPlotly({
-        req(input$measures)       
-        QT_Central_Tendency(rv$filter_ecg_data, settingsR())
-    })
 }
