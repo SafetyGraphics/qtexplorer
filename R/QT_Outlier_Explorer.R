@@ -32,6 +32,31 @@
 QT_Outlier_Explorer <- function(data, settings)
 {
     
+    # choose between observed or change values
+
+    if (settings$plot_what == "Observed") {
+        value_var <- settings$value_col
+    } else if (settings$plot_what == "Change") {
+        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
+    }	
+	
+    data_filtered <- data %>%
+        filter(.data[[settings$measure_col]] %in% settings$measure_values) 
+	   
+	#Derive columns to be presented on x and y axis based on user choices
+    data1 <- data_filtered %>% 
+        mutate(X_VAR = .data[[settings$Outlier_X_var]], 
+		       Y_VAR = .data[[value_var]]
+			   )
+	
+    #Derive X axis title based on selected variables	
+	if(settings$Outlier_X_var == settings$value_col){X_Title = "Observed Values"}
+	  else if(settings$Outlier_X_var == settings$base_col){X_Title = "Baseline"}
+    
+    #Derive Y axis title based on selected variables	
+	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
+	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
+	
     # horizontal reference line
     hline <- function(y = 0, color = "blue") {
         list(
@@ -78,32 +103,41 @@ QT_Outlier_Explorer <- function(data, settings)
             line = list(color = "red", width= 2, dash = 'dash')
         )
 		   }	
-    }	
-    
-    # choose between observed or change values
+		   
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 450 Diagonal Line")){
+        reflines[[4]] <-  list(
+            type = "line",
+            x0 = 450,
+            x1 = 0,
+            y0 = 0,
+            y1 = 450,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		  
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 480 Diagonal Line")){
+        reflines[[5]] <-  list(
+            type = "line",
+            x0 = 480,
+            x1 = 0,
+            y0 = 0,
+            y1 = 480,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
 
-    if (settings$plot_what == "Observed") {
-        value_var <- settings$value_col
-    } else if (settings$plot_what == "Change") {
-        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 500 Diagonal Line")){
+        reflines[[6]] <-  list(
+            type = "line",
+            x0 = 500,
+            x1 = 0,
+            y0 = 0,
+            y1 = 500,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }		   		   
+		   		   
     }	
-	
-    data_filtered <- data %>%
-        filter(.data[[settings$measure_col]] %in% settings$measure_values) 
-	   
-	#Derive columns to be presented on x and y axis based on user choices
-    data1 <- data_filtered %>% 
-        mutate(X_VAR = .data[[settings$Outlier_X_var]], 
-		       Y_VAR = .data[[value_var]]
-			   )
-	
-    #Derive X axis title based on selected variables	
-	if(settings$Outlier_X_var == settings$value_col){X_Title = "Observed Values"}
-	  else if(settings$Outlier_X_var == settings$base_col){X_Title = "Baseline"}
-    
-    #Derive Y axis title based on selected variables	
-	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
-	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
 	
     fig <- data1 %>%
     plot_ly(

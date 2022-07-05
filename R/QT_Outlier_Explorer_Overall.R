@@ -32,6 +32,50 @@
 QT_Outlier_Explorer_Overall <- function(data, settings)
 {
     
+    # choose between observed or change values
+    if (settings$plot_what == "Observed") {
+        value_var <- settings$value_col
+    } else if (settings$plot_what == "Change") {
+        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
+    }	
+	
+    data_filtered <- data %>%
+        filter(.data[[settings$measure_col]] %in% settings$measure_values) 
+	   
+	#Derive columns to be presented on x and y axis based on user choices
+    data1 <- data_filtered %>% 
+        mutate(X_VAR = .data[[settings$Outlier_X_var]], 
+		       Y_VAR = .data[[value_var]]
+			   )
+	
+    #Derive X axis title based on selected variables	
+	if(settings$Outlier_X_var == settings$value_col){X_Title = "Observed Values"}
+	  else if(settings$Outlier_X_var == settings$base_col){X_Title = "Baseline"}
+    
+    #Derive Y axis title based on selected variables	
+	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
+	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
+	  
+	
+	# dynamic contour
+    # https://stackoverflow.com/questions/41980772/equivalent-of-abline-in-plotly
+
+    # a function to calculate your abline
+    p_abline <- function(x, a = -1, b = 450) {
+        y <- a * x + b
+        return(y)
+    }
+
+    # find min , max
+
+    findMinMax <- function(d) {
+        x <- d[["X_VAR"]]
+        y <- d[["Y_VAR"]]
+        c(min_x=min(x, na.rm=TRUE), max_x=max(x, na.rm=TRUE), min_y=min(y, na.rm=TRUE), max_y=max(y, na.rm=TRUE))
+    }
+
+    m <- findMinMax(data1)
+	
     # horizontal reference line
     hline <- function(y = 0, color = "blue") {
         list(
@@ -77,32 +121,40 @@ QT_Outlier_Explorer_Overall <- function(data, settings)
 			yref="paper",
             line = list(color = "red", width= 2, dash = 'dash')
         )
-		   }	
+		   }	  
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 450 Diagonal Line")){
+        reflines[[4]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=450),
+            y1 = p_abline(m["max_x"], a=-1, b=450),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 480 Diagonal Line")){
+        reflines[[5]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=480),
+            y1 = p_abline(m["max_x"], a=-1, b=480),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 500 Diagonal Line")){
+        reflines[[6]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=500),
+            y1 = p_abline(m["max_x"], a=-1, b=500),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }		   		   
+		   
     }
-	    
-    # choose between observed or change values
-    if (settings$plot_what == "Observed") {
-        value_var <- settings$value_col
-    } else if (settings$plot_what == "Change") {
-        value_var <- "CHG" # assuming change variable is named CHG, check CDISC standard
-    }	
-	
-    data_filtered <- data %>%
-        filter(.data[[settings$measure_col]] %in% settings$measure_values) 
-	   
-	#Derive columns to be presented on x and y axis based on user choices
-    data1 <- data_filtered %>% 
-        mutate(X_VAR = .data[[settings$Outlier_X_var]], 
-		       Y_VAR = .data[[value_var]]
-			   )
-	
-    #Derive X axis title based on selected variables	
-	if(settings$Outlier_X_var == settings$value_col){X_Title = "Observed Values"}
-	  else if(settings$Outlier_X_var == settings$base_col){X_Title = "Baseline"}
-    
-    #Derive Y axis title based on selected variables	
-	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
-	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
+	    	  
 	
     fig <- data1 %>%
     plot_ly(

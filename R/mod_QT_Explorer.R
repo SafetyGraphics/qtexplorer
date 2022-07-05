@@ -125,11 +125,19 @@ QT_Explorer_server <- function(input, output, session, params) {
           "QTc Interval > 480",
           "QTc Interval > 500")
 		  }
-	  else if(input$plot_what == "Change"){
+	  else if(input$plot_what == "Change" && input$OutlierX == rv$base_col){
+	      c("QTc Change from Baseline > 30",
+          "QTc Change from Baseline > 60",
+		  "QTc Change from Baseline x=y Line",
+		  "QTc Change from Baseline > 450 Diagonal Line",
+		  "QTc Change from Baseline > 480 Diagonal Line",
+		  "QTc Change from Baseline > 500 Diagonal Line")
+		  }
+	  else if(input$plot_what == "Change" && input$OutlierX == rv$value_col){
 	      c("QTc Change from Baseline > 30",
           "QTc Change from Baseline > 60",
 		  "QTc Change from Baseline x=y Line")
-		  }
+		  }		  
 	})	
 	output$RefLines <- renderUI({
 		#add checkboxes for user to remove reference lines
