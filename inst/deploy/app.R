@@ -31,13 +31,13 @@ ecg:
   normal_col_high: ''
   studyday_col: DAY
   visit_col: VISIT
-  visitn_col: DAY
+  visitn_col: VISIT
   tpt_col: TIME
-  tptn_col: TIME
+  tptn_col: TIME2
   period_col: ''
-  unit_col: ''
-  baseline_flag_col: 'BASEFL'
-  baseline_flag_values: '1'
+  unit_col: 'UNIT'
+  baseline_flag_col: 'BL_FLAG'
+  baseline_flag_values: 'Y'
   treatment_col: TREAT
   analysis_flag_col: ''
   analysis_flag_values: ''
@@ -49,12 +49,6 @@ dm:
   age_col: AGE
 "
 )
-
-eg_ph2_new <- qtexplorer::eg_ph2 %>%
-  mutate(BASEFL = if_else(DAY == 1, 1, 0)) %>%
-  mutate(PARAM = if_else(grepl("qtcf", PARAM, ignore.case = TRUE), "QTcF", PARAM))
-
-
 
 # TQT ADaM exmaple
 adeg_new <- qtexplorer::adeg %>%

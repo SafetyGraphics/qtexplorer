@@ -39,6 +39,7 @@ QT_Outlier_Explorer_Drill_Down_Table <- function(data, settings)
 	#get demographic information from subject that was clicked on
 	DM_data <- data %>%
                    filter(.data[[settings$id_col]] %in% click$key[1]) %>% 
+				   mutate_if(is.numeric, as.character)
 	
 	return(DM_data)
 
