@@ -32,19 +32,6 @@
 QT_Outlier_Explorer <- function(data, settings)
 {
     
-    # horizontal reference line
-    hline <- function(y = 0, color = "blue") {
-        list(
-            type = "line",
-            x0 = 0,
-            x1 = 1,
-            xref = "paper",
-            y0 = y,
-            y1 = y,
-            line = list(color = color, width= 2, dash = 'dash')
-        )
-    }
-    
     # choose between observed or change values
 
     if (settings$plot_what == "Observed") {
@@ -70,6 +57,88 @@ QT_Outlier_Explorer <- function(data, settings)
 	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
 	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
 	
+    # horizontal reference line
+    hline <- function(y = 0, color = "blue") {
+        list(
+            type = "line",
+            x0 = 0,
+            x1 = 1,
+            xref = "paper",
+            y0 = y,
+            y1 = y,
+            line = list(color = color, width= 2, dash = 'dash')
+        )
+    }
+	
+	#define reference lines based on Y axis variable
+    if (settings$plot_what == "Observed") {
+	    reflines <- list()
+	    if (any(settings$RefLines %in% "QTc Interval > 450")){
+		   reflines[[1]] <- hline(y=450)
+		   }
+	    if (any(settings$RefLines %in% "QTc Interval > 480")){
+		   reflines[[2]] <- hline(y=480)
+		   }
+	    if (any(settings$RefLines %in% "QTc Interval > 500")){
+		   reflines[[3]] <- hline(y=500)
+		   }		
+
+	} else if (settings$plot_what == "Change") {
+	    reflines <- list()
+	    if (any(settings$RefLines %in% "QTc Change from Baseline > 30")){
+		   reflines[[1]] <- hline(y=30)
+		   }
+	    if (any(settings$RefLines %in% "QTc Change from Baseline > 60")){
+		   reflines[[2]] <- hline(y=60)
+		   }
+		if (any(settings$RefLines %in% "QTc Change from Baseline x=y Line")){
+        reflines[[3]] <-  list(
+            type = "line",
+            x0 = 0,
+            x1 = 1,
+            xref = "paper",
+            y0 = 0,
+            y1 = 1,
+			yref="paper",
+            line = list(color = "red", width= 2, dash = 'dash')
+        )
+		   }	
+		   
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 450 Diagonal Line")){
+        reflines[[4]] <-  list(
+            type = "line",
+            x0 = 450,
+            x1 = 0,
+            y0 = 0,
+            y1 = 450,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		  
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 480 Diagonal Line")){
+        reflines[[5]] <-  list(
+            type = "line",
+            x0 = 480,
+            x1 = 0,
+            y0 = 0,
+            y1 = 480,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 500 Diagonal Line")){
+        reflines[[6]] <-  list(
+            type = "line",
+            x0 = 500,
+            x1 = 0,
+            y0 = 0,
+            y1 = 500,
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }		   		   
+		   		   
+    }	
+	
     fig <- data1 %>%
     plot_ly(
         x         = ~X_VAR,
@@ -92,15 +161,9 @@ QT_Outlier_Explorer <- function(data, settings)
 	  margin = list(b=200),
 	  xaxis  = list(title = X_Title),
 	  yaxis  = list(title = Y_Title),
-	  shapes = 
-        list(
-            hline(30), 
-            hline(60),
-            hline(450), 
-            hline(480), 
-            hline(500)
-            )
-        )
+	  shapes = reflines
+	)
 
+	
 return(fig)    
 }

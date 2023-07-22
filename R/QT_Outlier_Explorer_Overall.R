@@ -32,26 +32,6 @@
 QT_Outlier_Explorer_Overall <- function(data, settings)
 {
     
-    # horizontal reference line
-    hline <- function(y = 0, color = "blue") {
-        list(
-            type = "line",
-            x0 = 0,
-            x1 = 1,
-            xref = "paper",
-            y0 = y,
-            y1 = y,
-            line = list(color = color, width= 2, dash = 'dash')
-        )
-    }
-	
-	#define reference lines based on Y axis variable
-    if (settings$plot_what == "Observed") {
-        reflines <- list(hline(450), hline(480), hline(500))
-	} else if (settings$plot_what == "Change") {
-        reflines <- list(hline(30), hline(60))		
-    }
-	    
     # choose between observed or change values
     if (settings$plot_what == "Observed") {
         value_var <- settings$value_col
@@ -75,6 +55,106 @@ QT_Outlier_Explorer_Overall <- function(data, settings)
     #Derive Y axis title based on selected variables	
 	if(settings$plot_what == "Observed"){Y_Title = "Observed Values"}
 	  else if(settings$plot_what == "Change"){Y_Title = "Change from Baseline"}	
+	  
+	
+	# dynamic contour
+    # https://stackoverflow.com/questions/41980772/equivalent-of-abline-in-plotly
+
+    # a function to calculate your abline
+    p_abline <- function(x, a = -1, b = 450) {
+        y <- a * x + b
+        return(y)
+    }
+
+    # find min , max
+
+    findMinMax <- function(d) {
+        x <- d[["X_VAR"]]
+        y <- d[["Y_VAR"]]
+        c(min_x=min(x, na.rm=TRUE), max_x=max(x, na.rm=TRUE), min_y=min(y, na.rm=TRUE), max_y=max(y, na.rm=TRUE))
+    }
+
+    m <- findMinMax(data1)
+	
+    # horizontal reference line
+    hline <- function(y = 0, color = "blue") {
+        list(
+            type = "line",
+            x0 = 0,
+            x1 = 1,
+            xref = "paper",
+            y0 = y,
+            y1 = y,
+            line = list(color = color, width= 2, dash = 'dash')
+        )
+    }
+	
+	#define reference lines based on Y axis variable
+    if (settings$plot_what == "Observed") {
+	    reflines <- list()
+	    if (any(settings$RefLines %in% "QTc Interval > 450")){
+		   reflines[[1]] <- hline(y=450)
+		   }
+	    if (any(settings$RefLines %in% "QTc Interval > 480")){
+		   reflines[[2]] <- hline(y=480)
+		   }
+	    if (any(settings$RefLines %in% "QTc Interval > 500")){
+		   reflines[[3]] <- hline(y=500)
+		   }		
+
+	} else if (settings$plot_what == "Change") {
+	    reflines <- list()
+	    if (any(settings$RefLines %in% "QTc Change from Baseline > 30")){
+		   reflines[[1]] <- hline(y=30)
+		   }
+	    if (any(settings$RefLines %in% "QTc Change from Baseline > 60")){
+		   reflines[[2]] <- hline(y=60)
+		   }	
+	    if (any(settings$RefLines %in% "QTc Change from Baseline x=y Line")){
+        reflines[[3]] <-  list(
+            type = "line",
+            x0 = 0,
+            x1 = 1,
+            xref = "paper",
+            y0 = 0,
+            y1 = 1,
+			yref="paper",
+            line = list(color = "red", width= 2, dash = 'dash')
+        )
+		   }	  
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 450 Diagonal Line")){
+        reflines[[4]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=450),
+            y1 = p_abline(m["max_x"], a=-1, b=450),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 480 Diagonal Line")){
+        reflines[[5]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=480),
+            y1 = p_abline(m["max_x"], a=-1, b=480),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }
+		if (any(settings$RefLines %in% "QTc Change from Baseline > 500 Diagonal Line")){
+        reflines[[6]] <-  list(
+            type = "line",
+            x0 = m["min_x"],
+            x1 = m["max_x"],
+            y0 = p_abline(m["min_x"], a=-1, b=500),
+            y1 = p_abline(m["max_x"], a=-1, b=500),
+            line = list(color = "orange", width= 2, dash = 'dash')
+        )
+		  }		   		   
+		   
+    }
+	    	  
 	
     fig <- data1 %>%
     plot_ly(
